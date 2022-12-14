@@ -18,7 +18,7 @@ position = '' #职业类型
 salary = 404  #薪资待遇，默认5~10K
 scale = '' #公司规模
 stage = ''#融资阶段
-
+timeDelay = 20 #每次打开网页延迟时间，数值太小可能网页加载不全导致抓取失败，请求速度太快导致被封。
 #构建链接
 baseUrl = 'https://www.zhipin.com/web/geek/job?'
 if query != '':
@@ -41,7 +41,6 @@ if stage != '':
      baseUrl = baseUrl+'stage=%s&'%stage
 if baseUrl[-1] == '&':
     baseUrl = baseUrl[:-1]
-
 #打开网站（手动扫码登录、保存Cookie）
 def SaveCookie(browser):
     browser.get('https://www.zhipin.com/')
@@ -53,13 +52,12 @@ def SaveCookie(browser):
 #读取Cookie并登录
 def CookieLogin(browser):
     browser.get('https://www.zhipin.com')
-    time.sleep(10)
+    time.sleep(timeDelay)
     f = open('BossCookie.txt','r')
     cookies = json.load(f)
     for cookie in cookies:
         browser.add_cookie(cookie)
     browser.refresh()
-#    time.sleep(10)
 #解析详情页
 def detailData(browser):
     soup = BeautifulSoup(browser.page_source,'lxml')
@@ -98,36 +96,44 @@ def detailData(browser):
 df = pd.DataFrame() #生成df
 browser = webdriver.Chrome() 
 browser.maximize_window() 
-#CookieLogin(browser)
+CookieLogin(browser)
 browser.get(baseUrl)
-time.sleep(10)
+time.sleep(timeDelay)
 while True:
     btns = browser.find_elements_by_css_selector("[class='job-name']")
-    print('当前页获取%s条招聘信息……'%len(btns))
+    Current_url = browser.current_url
+    print(Current_url)
+    num = len(btns) 
+    print('当前页获取%s条招聘信息……'%num)
     for btn in btns :
-        btn.click() #进入详情页
-        time.sleep(10)
+        try:
+            btn.click() #进入详情页
+        except:
+            continue
+        time.sleep(timeDelay)
         allWindows = browser.window_handles
         browser.switch_to.window(allWindows[1])
         try:
             print('尝试获取详情信息')
             data = detailData(browser)
             df = df.append(data, ignore_index = True)
-            print('√')
         except:
             print('信息获取失败，跳过……')
-#        allWindows = browser.window_handles
-#        browser.switch_to.window(allWindows[1])
         browser.close()
-        browser.switch_to.window(allWindows[0])
-        
+        browser.switch_to.window(allWindows[0])   
     try:
-        print('尝试翻页')
+        print('进入下一页')
         browser.find_element_by_css_selector("[class='ui-icon-arrow-right']").click()
-        time.sleep(10)
-    except:
+        time.sleep(timeDelay)
+        NewUrl = browser.current_url
+        if Current_url == NewUrl:
+            print('已至最后一页，结束运行……')
+            break
+        time.sleep(timeDelay)
+    except Exception as e:
+        print(e)
         break
-
-df.to_excel('boss.xlsx')
+fileName = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime(time.time()))
+df.to_excel('%s.xlsx'%fileName)
 browser.quit()
 
