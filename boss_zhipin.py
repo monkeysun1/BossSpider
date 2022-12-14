@@ -29,6 +29,15 @@ def CookieLogin():
     for cookie in cookies:
         browser.add_cookie(cookie)
     browser.refresh()
+    
+#非搜索链接生成
+MainUrlList = []
+def Zhipin(city,salary,pages):
+    for page in range(pages):
+        mainUrl = 'https://www.zhipin.com/web/geek/job?city=%s&salary=%s&page=%s'%(city,salary,page+1)
+        MainUrlList.append(mainUrl)
+    return MainUrlList
+MainUrlList = Zhipin('101220200','404',10)
 #通过搜索链接获取详情链接
 searchUrl = 'https://www.zhipin.com/web/geek/job?query=%E6%95%B0%E6%8D%AE%2F%E7%AD%96%E7%95%A5%E8%BF%90%E8%90%A5&city=100010000'
 def GetDetailUrls(searchUrl):
@@ -85,6 +94,8 @@ def detailData(detailUrl):
     miaosu = soup.find('div',class_="job-sec-text").get_text()
     data = {'公司名称':gongsi,'职位':zhiwei,'薪水':xinshui,'学历要求':xueli,'职位描述':miaosu,'人事':name,'上次活跃':lastlogin,'地址':dizhi,'链接':browser.current_url}
     return data
+
+
 #生成搜索链接
 def getSearchUrls(jobs,city,pages):
     SearchUrlList = []
@@ -93,21 +104,22 @@ def getSearchUrls(jobs,city,pages):
             SearchUrl = 'https://www.zhipin.com/web/geek/job?query=%s&city=%s&page=%s'%(job,city,page+1)
             SearchUrlList.append(SearchUrl)
     return SearchUrlList
-b = input('1:保存cookie，其它:运行爬虫\n：')
+
+b = input('1:保存cookie，2:无关键词薪资爬虫,其它:关键词运行爬虫\n：')
+browser = webdriver.Chrome() #打开浏览器
 if b=='1':
-    SaveCookie()
+    SaveCookie()    
 else:
     jobs = ['数据','统计','excel','运营'] #搜索关键词
     city = 101220200 #城市代码
     pages = 10 #共抓取几页
-    #生成df
-    df = pd.DataFrame()
-    #打开浏览器
-    browser = webdriver.Chrome()
-    #登录
-    CookieLogin()
-    #搜索
-    SearchUrlList = getSearchUrls(jobs,city,pages)
+    salary = 404 #薪资5~10k
+    df = pd.DataFrame() #生成df
+    CookieLogin() #登录
+    if b==2:
+        SearchUrlList = Zhipin(city,salary,pages)
+    else:
+        SearchUrlList = getSearchUrls(jobs,city,pages) #搜索
     for SearchUrl in SearchUrlList:
         print('解析搜索链接……')   
         detailList = GetDetailUrls(SearchUrl)
