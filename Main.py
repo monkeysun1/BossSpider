@@ -18,7 +18,7 @@ position = '' #职业类型
 salary = 404  #薪资待遇，默认5~10K
 scale = '' #公司规模
 stage = ''#融资阶段
-timeDelay = 20 #每次打开网页延迟时间，数值太小可能网页加载不全导致抓取失败，请求速度太快导致被封。
+timeDelay = 20 #每次打开网页延迟时间
 #构建链接
 baseUrl = 'https://www.zhipin.com/web/geek/job?'
 if query != '':
@@ -96,7 +96,13 @@ def detailData(browser):
 df = pd.DataFrame() #生成df
 browser = webdriver.Chrome() 
 browser.maximize_window() 
-CookieLogin(browser)
+a = input('1.登录保存Cookie，2.Cookie登录，其它.不登录直接抓取：')
+if a=='1':
+    SaveCookie(browser)
+elif a=='2':
+    CookieLogin(browser)
+else:
+    pass
 browser.get(baseUrl)
 time.sleep(timeDelay)
 while True:

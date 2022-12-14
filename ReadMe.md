@@ -1,8 +1,29 @@
 # 说明
 
-BOSS直聘职位抓取的零碎代码，失败记录见：https://bizha.top/post/bosszhipinone.html ，有其它解决方案请提交issues。
+参数：
 
-一直抓取失败，最终选择的是`selenium` 获取 html 代码，BeautifulSoup 解析。
+```python
+query = '' #搜索关键词
+city = 101220200 #城市代码，默认蚌埠
+degree = '' #学历要求
+industry = '' #公司行业
+experience = '' #工作经验
+position = '' #职业类型
+salary = 404  #薪资待遇，默认5~10K
+scale = '' #公司规模
+stage = ''#融资阶段
+timeDelay = 20 #每次打开网页延迟时间，数值太小可能网页加载不全导致抓取失败，请求速度太快导致被封。
+```
+
+城市代码(city)见：https://www.zhipin.com/wapi/zpCommon/data/cityGroup.json
+
+工作经验（experience）、薪资待遇（salary）、融资阶段（stage）、公司规模（scale）、学历（degree）代码见：https://www.zhipin.com/wapi/zpgeek/search/job/condition.json
+
+公司行业（industry）代码见：https://www.zhipin.com/wapi/zpCommon/data/industry.json
+
+职业类型（position）代码见：https://www.zhipin.com/wapi/zpCommon/data/position.json
+
+
 
 ### 一、前置：
 
