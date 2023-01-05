@@ -74,6 +74,7 @@ def detailData(browser):
             gongsi = 'gongsi'
         
     gongsi = gongsi.replace('公司名称','')
+    print('成功获取 %s 职位……'%gongsi)
     #公司地址
     try:
         dizhi = soup.find('div',class_="location-address").get_text()
@@ -96,6 +97,8 @@ def detailData(browser):
 df = pd.DataFrame() #生成df
 browser = webdriver.Chrome() 
 browser.maximize_window() 
+browser.get('https://www.zhipin.com')
+print('如需验证人工，请手动验证。')
 a = input('1.登录保存Cookie，2.Cookie登录，其它.不登录直接抓取：')
 if a=='1':
     SaveCookie(browser)
