@@ -74,6 +74,8 @@ def detailData(browser):
             gongsi = 'gongsi'
         
     gongsi = gongsi.replace('公司名称','')
+    gongsi = gongsi.replace('\r\n','')
+    gongsi = gongsi.replace(' ','')
     print('成功获取 %s 职位……'%gongsi)
     #公司地址
     try:
