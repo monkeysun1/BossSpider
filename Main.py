@@ -4,43 +4,49 @@ Created on Wed Dec 14 11:01:00 2022
 
 @author: Administrator
 """
-import json,time
+import json,time,random
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import pandas as pd
 
-query = '' #搜索关键词
-city = 101220200 #城市代码，默认蚌埠
-degree = '' #学历要求
-industry = '' #公司行业
-experience = '' #工作经验
-position = '' #职业类型
-salary = 404  #薪资待遇，默认5~10K
-scale = '' #公司规模
-stage = ''#融资阶段
-timeDelay = 20 #每次打开网页延迟时间
+class UrlQuery:
+    query = ''  # 搜索关键词
+    city = 101110100  # 城市代码，默认蚌埠     全国 ： 100010000  西安 ：101110100
+    degree = ''  # 学历要求 硕士：204  本科：203  博士：205
+    industry = ''  # 公司行业
+    experience = ''  # 工作经验
+    position = ''  # 职业类型
+    salary = 406  # 薪资待遇，默认5~10K  10-20K：405  20-50k:406 50k以上：407
+    scale = ''  # 公司规模
+    stage = ''  # 融资阶段
+
+
 #构建链接
-baseUrl = 'https://www.zhipin.com/web/geek/job?'
-if query != '':
-    baseUrl = baseUrl+'query=%s&'%query
-if city != '':
-    baseUrl = baseUrl+'city=%s&'%city
-if degree != '':
-    baseUrl = baseUrl+'degree=%s&'%degree
-if industry != '':
-    baseUrl = baseUrl+'industry=%s&'%industry
-if experience !='' :   
-    baseUrl = baseUrl+'experience=%s&'%experience
-if position  !='' : 
-    baseUrl = baseUrl+'position=%s&'%position
-if salary != '':
-    baseUrl = baseUrl+'salary=%s&'%salary  
-if scale != '':
-    baseUrl = baseUrl+'scale=%s&'%scale
-if stage != '':
-     baseUrl = baseUrl+'stage=%s&'%stage
-if baseUrl[-1] == '&':
-    baseUrl = baseUrl[:-1]
+
+def get_url(in_query):
+    baseUrl = 'https://www.zhipin.com/web/geek/job?'
+    if in_query.query != '':
+        baseUrl = baseUrl + 'query=%s&' % in_query.query
+    if in_query.city != '':
+        baseUrl = baseUrl + 'city=%s&' % in_query.city
+    if in_query.degree != '':
+        baseUrl = baseUrl + 'degree=%s&' % in_query.degree
+    if in_query.industry != '':
+        baseUrl = baseUrl + 'industry=%s&' % in_query.industry
+    if in_query.experience != '':
+        baseUrl = baseUrl + 'experience=%s&' % in_query.experience
+    if in_query.position != '':
+        baseUrl = baseUrl + 'position=%s&' % in_query.position
+    if in_query.salary != '':
+        baseUrl = baseUrl + 'salary=%s&' % in_query.salary
+    if in_query.scale != '':
+        baseUrl = baseUrl + 'scale=%s&' % in_query.scale
+    if in_query.stage != '':
+        baseUrl = baseUrl + 'stage=%s&' % in_query.stage
+    if baseUrl[-1] == '&':
+        baseUrl = baseUrl[:-1]
+    return baseUrl
+
 #打开网站（手动扫码登录、保存Cookie）
 def SaveCookie(browser):
     browser.get('https://www.zhipin.com/')
@@ -52,7 +58,6 @@ def SaveCookie(browser):
 #读取Cookie并登录
 def CookieLogin(browser):
     browser.get('https://www.zhipin.com')
-    time.sleep(timeDelay)
     f = open('BossCookie.txt','r')
     cookies = json.load(f)
     for cookie in cookies:
@@ -96,55 +101,65 @@ def detailData(browser):
     data = {'公司名称':gongsi,'职位':zhiwei,'薪水':xinshui,'学历要求':xueli,'职位描述':miaosu,'人事':name,'上次活跃':lastlogin,'地址':dizhi,'链接':browser.current_url}
     return data
 
-df = pd.DataFrame() #生成df
-browser = webdriver.Chrome() 
-browser.maximize_window() 
-browser.get('https://www.zhipin.com')
-print('如需验证人工，请手动验证。')
-a = input('1.登录保存Cookie，2.Cookie登录，其它.不登录直接抓取：')
-if a=='1':
-    SaveCookie(browser)
-elif a=='2':
-    CookieLogin(browser)
-else:
-    pass
-browser.get(baseUrl)
-time.sleep(timeDelay)
-while True:
-    btns = browser.find_elements_by_css_selector("[class='job-name']")
-    Current_url = browser.current_url
-    print(Current_url)
-    num = len(btns) 
-    print('当前页获取%s条招聘信息……'%num)
-    for btn in btns :
-        try:
-            btn.click() #进入详情页
-        except:
-            continue
-        time.sleep(timeDelay)
-        allWindows = browser.window_handles
-        browser.switch_to.window(allWindows[1])
-        try:
-            print('尝试获取详情信息')
-            data = detailData(browser)
-            df = df.append(data, ignore_index = True)
-        except:
-            print('信息获取失败，跳过……')
-        browser.close()
-        browser.switch_to.window(allWindows[0])   
-    try:
-        print('进入下一页')
-        browser.find_element_by_css_selector("[class='ui-icon-arrow-right']").click()
-        time.sleep(timeDelay)
-        NewUrl = browser.current_url
-        if Current_url == NewUrl:
-            print('已至最后一页，结束运行……')
-            break
-        time.sleep(timeDelay)
-    except Exception as e:
-        print(e)
-        break
-fileName = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime(time.time()))
-df.to_excel('%s.xlsx'%fileName)
-browser.quit()
 
+def get_boss_data():
+    df = pd.DataFrame()  # 生成df
+    browser = webdriver.Chrome()
+    browser.maximize_window()
+    browser.get('https://www.zhipin.com')
+    print('如需验证人工，请手动验证。')
+    a = input('1.登录保存Cookie，2.Cookie登录，其它.不登录直接抓取：')
+    if a == '1':
+        SaveCookie(browser)
+    elif a == '2':
+        CookieLogin(browser)
+    else:
+        pass
+    query = UrlQuery()
+    base_url = get_url(query)
+    browser.get(base_url)
+
+    timeDelay = random.randint(10,20)  # 每次打开网页延迟时间  # 每次打开网页延迟时间
+    while True:
+        btns = browser.find_elements_by_css_selector("[class='job-name']")
+        Current_url = browser.current_url
+        print(Current_url)
+        num = len(btns)
+        print('当前页获取%s条招聘信息……' % num)
+        for btn in btns:
+            try:
+                btn.click()  # 进入详情页
+            except:
+                continue
+            time.sleep(timeDelay)
+            allWindows = browser.window_handles
+            browser.switch_to.window(allWindows[1])
+            try:
+                print('尝试获取详情信息')
+                data = detailData(browser)
+                df = df.append(data, ignore_index=True)
+            except:
+                print('信息获取失败，跳过……')
+            browser.close()
+            browser.switch_to.window(allWindows[0])
+        try:
+            print('进入下一页')
+            browser.find_element_by_css_selector("[class='ui-icon-arrow-right']").click()
+            time.sleep(timeDelay)
+            NewUrl = browser.current_url
+            if Current_url == NewUrl:
+                print('已至最后一页，结束运行……')
+                break
+            time.sleep(timeDelay/10)
+        except Exception as e:
+            print(e)
+            browser.refresh()
+
+    fileName = time.strftime('%Y-%m-%d %H_%M_%S', time.localtime(time.time()))
+    fileName = "query:" + UrlQuery.query + fileName
+    df.to_excel('%s.xlsx' % fileName)
+    browser.quit()
+
+
+if __name__=='__main__':
+    get_boss_data()
